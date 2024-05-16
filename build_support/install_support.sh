@@ -1,8 +1,8 @@
 #!/bin/bash
 
-sudo apt update
-
 sudo apt-add-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal main"
+
+sudo apt update
 
 sudo apt install -y clang-14
 
