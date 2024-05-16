@@ -39,7 +39,7 @@ printOneToTen();
 ```txt
 # operator为要定义的运算符
 # 其中unary运算符只支持单字符，binary运算符支持单字符、双字符以及三字符
-# precedence为运算符优先级
+# precedence(可选)为运算符优先级，unary运算符不需要表明优先级，而binary运算符需要
 # args为参数，各参数间用空格隔开
 def [unary|binary]@[operator] [precedence] (args) {
     ......
