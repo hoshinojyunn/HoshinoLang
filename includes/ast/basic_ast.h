@@ -11,7 +11,7 @@
 #include <vector>
 
 
-namespace kalei {
+namespace hoshino {
 class NumberExprAST;
 class VariableExprAST;
 class VarExprAST;

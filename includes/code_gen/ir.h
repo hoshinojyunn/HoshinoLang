@@ -50,7 +50,7 @@ inline std::map<std::string, llvm::AllocaInst*>namedValues;
            map中这个底层数据被释放的string_view就会与传入的参数进行比较，自然会引发内存错误
     =================================================================
 */
-inline std::map<std::string, std::unique_ptr<kalei::PrototypeAST>>functionProtos;
+inline std::map<std::string, std::unique_ptr<hoshino::PrototypeAST>>functionProtos;
 
 
 /*  

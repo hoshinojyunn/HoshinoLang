@@ -1,5 +1,5 @@
-#ifndef KALEI_LIB_H
-#define KALEI_LIB_H
+#ifndef HOSHINO_LIB_H
+#define HOSHINO_LIB_H
 
 #ifdef _WIN32
 #define DLLEXPORT __declspec(dllexport)

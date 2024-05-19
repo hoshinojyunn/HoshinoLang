@@ -32,7 +32,7 @@ set(SOURCES
 
 find_package(LLVM REQUIRED CONFIG)
 if(NOT LLVM_FOUND OR LLVM_VERSION VERSION_LESS 7.0)
-  message(SEND_ERROR "LLVM >= 7.0 is required to build kalei")
+  message(SEND_ERROR "LLVM >= 7.0 is required to build hoshino")
 endif()
 include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})

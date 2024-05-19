@@ -13,22 +13,24 @@
 #include <vector>
 #include "context.h"
 
+using namespace hoshino;
+
 // static announce
 static Token GetTok();
-static std::unique_ptr<kalei::ExprAST> ParseExpression();
-static std::unique_ptr<kalei::ExprAST>ParseNumberExpr();
-static std::unique_ptr<kalei::ExprAST>ParseVarExpr();
-static std::unique_ptr<kalei::ExprAST> ParseParenExpr();
-static std::unique_ptr<kalei::ExprAST> ParsePrimary();
-static std::unique_ptr<kalei::ExprAST>ParseIdentifierExpr();
-static std::unique_ptr<kalei::ExprAST> ParseBinOpRHS(int, std::unique_ptr<kalei::ExprAST>);
-static std::unique_ptr<kalei::ExprAST> ParseUnary();
-static std::unique_ptr<kalei::ExprAST> ParseBlockExpr();
-static std::unique_ptr<kalei::ExprAST> ParseIfExpr();
-static std::unique_ptr<kalei::ExprAST> ParseForExpr();
-static std::unique_ptr<kalei::PrototypeAST> ParsePrototype();
-static std::unique_ptr<kalei::ExprAST> ParseBinOpRHS(int exprPrece, 
-                std::unique_ptr<kalei::ExprAST>lhs);
+static std::unique_ptr<ExprAST> ParseExpression();
+static std::unique_ptr<ExprAST>ParseNumberExpr();
+static std::unique_ptr<ExprAST>ParseVarExpr();
+static std::unique_ptr<ExprAST> ParseParenExpr();
+static std::unique_ptr<ExprAST> ParsePrimary();
+static std::unique_ptr<ExprAST>ParseIdentifierExpr();
+static std::unique_ptr<ExprAST> ParseBinOpRHS(int, std::unique_ptr<ExprAST>);
+static std::unique_ptr<ExprAST> ParseUnary();
+static std::unique_ptr<ExprAST> ParseBlockExpr();
+static std::unique_ptr<ExprAST> ParseIfExpr();
+static std::unique_ptr<ExprAST> ParseForExpr();
+static std::unique_ptr<PrototypeAST> ParsePrototype();
+static std::unique_ptr<ExprAST> ParseBinOpRHS(int exprPrece, 
+                std::unique_ptr<ExprAST>lhs);
 static int GetTokPrecedence();
 
 static int lastChar = ' ';
@@ -173,14 +175,14 @@ static std::string GetBinaryOp(){
 }
 
 
-static std::unique_ptr<kalei::ExprAST>ParseNumberExpr(){
-    auto result = std::make_unique<kalei::NumberExprAST>(numVal);
+static std::unique_ptr<ExprAST>ParseNumberExpr(){
+    auto result = std::make_unique<NumberExprAST>(numVal);
     GetNextToken();
     return std::move(result);
 }
 
 // 括号
-static std::unique_ptr<kalei::ExprAST> ParseParenExpr(){
+static std::unique_ptr<ExprAST> ParseParenExpr(){
     GetNextToken(); // eat (
     auto expr = ParseExpression();
     if(!expr)
@@ -197,14 +199,14 @@ static std::unique_ptr<kalei::ExprAST> ParseParenExpr(){
     独立变量标识符: identifier后没有(
     函数调用表达式: identifier后跟着(
 */
-static std::unique_ptr<kalei::ExprAST>ParseIdentifierExpr(){
+static std::unique_ptr<ExprAST>ParseIdentifierExpr(){
     std::string idName = identifierStr;
     GetNextToken(); // eat identifier
     if(curTok != '(')
-        return std::make_unique<kalei::VariableExprAST>(idName);
+        return std::make_unique<VariableExprAST>(idName);
     GetNextToken(); // eat (
     //  到这里可以确定是函数调用表达式
-    std::vector<std::unique_ptr<kalei::ExprAST>>args;
+    std::vector<std::unique_ptr<ExprAST>>args;
     while(curTok != ')'){
         if(auto arg = ParseExpression(); arg != nullptr)
             args.push_back(std::move(arg));
@@ -217,11 +219,11 @@ static std::unique_ptr<kalei::ExprAST>ParseIdentifierExpr(){
         GetNextToken();
     }
     GetNextToken(); // eat )
-    return std::make_unique<kalei::CallExprAST>(idName, std::move(args));
+    return std::make_unique<CallExprAST>(idName, std::move(args));
 }
 
 // identifier number paren if
-static std::unique_ptr<kalei::ExprAST> ParsePrimary(){
+static std::unique_ptr<ExprAST> ParsePrimary(){
     switch (curTok) {
         case TOK_IDENTIFIER:
             return ParseIdentifierExpr();
@@ -242,20 +244,20 @@ static std::unique_ptr<kalei::ExprAST> ParsePrimary(){
     }
 }
 
-static std::unique_ptr<kalei::ExprAST> ParseVarExpr(){
+static std::unique_ptr<ExprAST> ParseVarExpr(){
     GetNextToken(); // eat var
     if(curTok != TOK_IDENTIFIER)
         return LOG_ERROR("expected identifier after var");
     std::string varName = identifierStr;
     GetNextToken(); // eat identifier
-    std::unique_ptr<kalei::ExprAST>initVal;
+    std::unique_ptr<ExprAST>initVal;
     if(curTok == '='){
         GetNextToken(); // eat =
         initVal = ParseExpression();
         if(!initVal)
             return nullptr;
     }
-    return std::make_unique<kalei::VarExprAST>(varName, std::move(initVal));
+    return std::make_unique<VarExprAST>(varName, std::move(initVal));
 }
 
 
@@ -272,7 +274,7 @@ static int GetTokPrecedence(){
     return -1;
 }
 
-static std::unique_ptr<kalei::ExprAST> ParseExpression(){
+static std::unique_ptr<ExprAST> ParseExpression(){
     auto lhs = ParseUnary();
     if(!lhs)
         return nullptr;
@@ -283,8 +285,8 @@ static std::unique_ptr<kalei::ExprAST> ParseExpression(){
     运算符优先级分析
     （其实可以用中缀转后缀表达式分析的）
 */
-static std::unique_ptr<kalei::ExprAST> ParseBinOpRHS(int exprPrece, 
-                std::unique_ptr<kalei::ExprAST>lhs){
+static std::unique_ptr<ExprAST> ParseBinOpRHS(int exprPrece, 
+                std::unique_ptr<ExprAST>lhs){
     // 当前curTok应指向一个二元运算符
     while(true){
         int tokPrece = GetTokPrecedence();
@@ -312,14 +314,14 @@ static std::unique_ptr<kalei::ExprAST> ParseBinOpRHS(int exprPrece,
         // 如果rhs下一个二元运算符优先级比当前运算符优先级低或相等
         // 那么说明lhs与rhs就可以先进行运算了 即(lhs op rhs)
         // 合并lhs rhs
-        lhs = std::make_unique<kalei::BinaryExprAST>(binOp, std::move(lhs), std::move(rhs));
+        lhs = std::make_unique<BinaryExprAST>(binOp, std::move(lhs), std::move(rhs));
     }
 }
 
 /*
     解析单目运算表达式或普通操作数
 */
-static std::unique_ptr<kalei::ExprAST> ParseUnary(){
+static std::unique_ptr<ExprAST> ParseUnary(){
     /*
         若curTok不是operator 则它是一个操作数
         若curTok为Token中定义的枚举值 则其不是一个ascii码(Token中的枚举值都是负数)
@@ -333,11 +335,11 @@ static std::unique_ptr<kalei::ExprAST> ParseUnary(){
     // 单目运算符后的操作数 递归使用ParseUnary 
     // 因为可能会有多次调用单目运算符 比如 !!x
     if(auto operand = ParseUnary())
-        return std::make_unique<kalei::UnaryExprAST>(opCode, std::move(operand));
+        return std::make_unique<UnaryExprAST>(opCode, std::move(operand));
     return nullptr;
 }
 
-std::unique_ptr<kalei::ExprAST> ParseIfExpr(){
+std::unique_ptr<ExprAST> ParseIfExpr(){
     GetNextToken(); // eat if
     auto condition = ParseExpression(); // parse condition
     if(!condition)
@@ -354,7 +356,7 @@ std::unique_ptr<kalei::ExprAST> ParseIfExpr(){
         return nullptr;
     if(curTok == TOK_EXPR_END)
         GetNextToken(); // eat ;
-    std::unique_ptr<kalei::ExprAST>Else;
+    std::unique_ptr<ExprAST>Else;
     if(curTok == TOK_ELSE) {
         GetNextToken(); // eat else
         Else = ParseExpression();
@@ -363,11 +365,11 @@ std::unique_ptr<kalei::ExprAST> ParseIfExpr(){
         if(curTok == TOK_EXPR_END)
             GetNextToken(); // eat ;
     }
-    return std::make_unique<kalei::IfExprAST>(std::move(condition), std::move(then), std::move(Else));
+    return std::make_unique<IfExprAST>(std::move(condition), std::move(then), std::move(Else));
 
 }
 
-static std::unique_ptr<kalei::ExprAST> ParseForExpr(){
+static std::unique_ptr<ExprAST> ParseForExpr(){
     GetNextToken(); // eat for
     if(curTok != TOK_IDENTIFIER)
         return LOG_ERROR("expected identifier after for");
@@ -386,7 +388,7 @@ static std::unique_ptr<kalei::ExprAST> ParseForExpr(){
     auto end = ParseExpression();
     if(!end)
         return nullptr;
-    std::unique_ptr<kalei::ExprAST>step;
+    std::unique_ptr<ExprAST>step;
     if(curTok != TOK_EXPR_END)
         return LOG_ERROR("expected ';' after for end value");
     // step value is optional
@@ -404,14 +406,14 @@ static std::unique_ptr<kalei::ExprAST> ParseForExpr(){
         return nullptr;
     if(curTok == TOK_EXPR_END)
         GetNextToken(); //eat ;
-    return std::make_unique<kalei::ForExprAST>(idName, 
+    return std::make_unique<ForExprAST>(idName, 
         std::move(start), std::move(end), std::move(step), std::move(body));
 
 }
 
 
 // 解析函数原型
-static std::unique_ptr<kalei::PrototypeAST> ParsePrototype(){
+static std::unique_ptr<PrototypeAST> ParsePrototype(){
     
     std::string fnName;
     /*
@@ -471,16 +473,16 @@ static std::unique_ptr<kalei::PrototypeAST> ParsePrototype(){
     GetNextToken(); // eat )
     if(kindOfProto && args.size()!=kindOfProto)
         return LOG_ERROR_P("Invalid number of operands for operator");
-    return std::make_unique<kalei::PrototypeAST>(
+    return std::make_unique<PrototypeAST>(
         fnName, std::move(args),
          kindOfProto!=0, binaryPrece);
 }
 
-std::unique_ptr<kalei::ExprAST> ParseBlockExpr(){
+std::unique_ptr<ExprAST> ParseBlockExpr(){
     if(curTok != '{')
         return LOG_ERROR("expected '{' while parse block expression");
     GetNextToken(); // eat {
-    std::vector<std::unique_ptr<kalei::ExprAST>>body;
+    std::vector<std::unique_ptr<ExprAST>>body;
     while(curTok != '}'){
         auto expr = ParseExpression();
         // 一个表达式可能会以}结尾 比如if for
@@ -490,11 +492,11 @@ std::unique_ptr<kalei::ExprAST> ParseBlockExpr(){
             auto&tmpExpr =  *expr.get();
             // typeid的参数应该是一个纯粹的类型表达式 
             // 因此最好不要使用求值表达式 如：*expr等
-            isIfExpr = (typeid(tmpExpr) == typeid(kalei::IfExprAST));
-            isForExpr = (typeid(tmpExpr) == typeid(kalei::ForExprAST));
+            isIfExpr = (typeid(tmpExpr) == typeid(IfExprAST));
+            isForExpr = (typeid(tmpExpr) == typeid(ForExprAST));
         }
-        // auto temp1 = dynamic_cast<kalei::IfExprAST*>(expr.get());
-        // auto temp2 = dynamic_cast<kalei::ForExprAST*>(expr.get());
+        // auto temp1 = dynamic_cast<IfExprAST*>(expr.get());
+        // auto temp2 = dynamic_cast<ForExprAST*>(expr.get());
         // 如果解析出的表达式不是If或For表达式
         if(!isIfExpr && !isForExpr){
             if(curTok != TOK_EXPR_END)
@@ -506,23 +508,23 @@ std::unique_ptr<kalei::ExprAST> ParseBlockExpr(){
         
     }
     GetNextToken(); // eat }
-    return std::make_unique<kalei::BlockExprAST>(std::move(body));
+    return std::make_unique<BlockExprAST>(std::move(body));
 }
 
-std::unique_ptr<kalei::FunctionAST>ParseDefinition(){
+std::unique_ptr<FunctionAST>ParseDefinition(){
     GetNextToken(); // eat def
     auto proto = ParsePrototype();
     if(!proto)
         return nullptr;
     if(auto body = ParseExpression())
-        return std::make_unique<kalei::FunctionAST>(std::move(proto), std::move(body));
+        return std::make_unique<FunctionAST>(std::move(proto), std::move(body));
     else{
         LOG_ERROR("expected function body when parsing definition");
         return nullptr;
     }
 }
 
-std::unique_ptr<kalei::PrototypeAST> ParseExtern(){
+std::unique_ptr<PrototypeAST> ParseExtern(){
     GetNextToken(); // eat extern
     return ParsePrototype();
 }
@@ -530,12 +532,12 @@ std::unique_ptr<kalei::PrototypeAST> ParseExtern(){
 /*
     将顶层表达式转化为匿名函数
 */
-std::unique_ptr<kalei::FunctionAST> ParseTopLevelExpr(){
+std::unique_ptr<FunctionAST> ParseTopLevelExpr(){
     if(auto expr = ParseExpression(); expr!=nullptr){
         // make an empty proto
-        auto proto = std::make_unique<kalei::PrototypeAST>(
+        auto proto = std::make_unique<PrototypeAST>(
             anonymous_expr_name, std::vector<std::string>{});
-        return std::make_unique<kalei::FunctionAST>(std::move(proto), std::move(expr));
+        return std::make_unique<FunctionAST>(std::move(proto), std::move(expr));
     }
     return nullptr;
 }

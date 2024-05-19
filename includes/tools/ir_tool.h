@@ -7,9 +7,9 @@
 #include <string_view>
 #include "code_gen/ir.h"
 
-inline std::unique_ptr<kalei::CodeGenVisitor>codeGenerator;
+inline std::unique_ptr<hoshino::CodeGenVisitor>codeGenerator;
 inline void InitCodeVisitor(){
-    codeGenerator = std::make_unique<kalei::CodeGenVisitor>();
+    codeGenerator = std::make_unique<hoshino::CodeGenVisitor>();
 }
 
 inline auto getFunction(std::string_view name) -> llvm::Function* {

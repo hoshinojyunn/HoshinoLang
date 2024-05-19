@@ -4,13 +4,13 @@
 #include <memory>
 
 
-inline auto log_err(const char *str) -> std::unique_ptr<kalei::ExprAST>{ 
+inline auto log_err(const char *str) -> std::unique_ptr<hoshino::ExprAST>{ 
     fprintf(stderr, "Error: %s\n", str); 
     fflush(stderr);
     return nullptr; 
 }
 
-inline auto log_err_p(const char *str) -> std::unique_ptr<kalei::PrototypeAST>{
+inline auto log_err_p(const char *str) -> std::unique_ptr<hoshino::PrototypeAST>{
     log_err(str);
     return nullptr;
 }

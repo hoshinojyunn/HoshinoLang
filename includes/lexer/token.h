@@ -102,9 +102,9 @@ constexpr const char* anonymous_expr_name = "__anon_expr";
 
 // extern 
 extern int GetNextToken();
-extern std::unique_ptr<kalei::FunctionAST> ParseTopLevelExpr();
-extern std::unique_ptr<kalei::FunctionAST>ParseDefinition();
-extern std::unique_ptr<kalei::PrototypeAST> ParseExtern();
+extern std::unique_ptr<hoshino::FunctionAST> ParseTopLevelExpr();
+extern std::unique_ptr<hoshino::FunctionAST>ParseDefinition();
+extern std::unique_ptr<hoshino::PrototypeAST> ParseExtern();
 
 
 

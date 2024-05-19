@@ -18,7 +18,7 @@
 #include <memory>
 #include <utility>
 #include <vector>
-using namespace kalei;
+using namespace hoshino;
 
 
 auto CodeGenVisitor::CodeGen(NumberExprAST *ast) -> llvm::Value* {
@@ -35,11 +35,11 @@ auto CodeGenVisitor::CodeGen(VariableExprAST *ast) -> llvm::Value * {
 }
 
 // llvm生成的指令的两个操作数必须类型相同 返回的结果也与操作数类型相同
-// (kalei所有操作数都是double 所以不必在意这个问题)
+// (hoshino所有操作数都是double 所以不必在意这个问题)
 auto CodeGenVisitor::CodeGen(BinaryExprAST *ast) -> llvm::Value* {
     // 
     if(ast->op_ == "="){
-        auto lhsExpr = dynamic_cast<kalei::VariableExprAST*>(ast->lhs_.get());
+        auto lhsExpr = dynamic_cast<VariableExprAST*>(ast->lhs_.get());
         // 若=运算左边不是一个变量 则返回错误
         if(!lhsExpr)
             return LOG_ERROR_V("destination of '=' must be a variable");
@@ -66,7 +66,7 @@ auto CodeGenVisitor::CodeGen(BinaryExprAST *ast) -> llvm::Value* {
     }else if(ast->op_ == "<"){
         /* 
             FCmpULT(float point compare, result is unsigned, less than)
-            llvm的fcmp指令始终返回一位整数 但是因为kalei只有double一种类型
+            llvm的fcmp指令始终返回一位整数 但是因hoshino只有double一种类型
             所以我们希望将返回的数转换为0.0或1.0
             因此第二行用UIToFP(unsigned int to float point)将其转为浮点数
             如果用SIToFP(signed int to float point)则会转为0.0或-1.0
@@ -78,7 +78,7 @@ auto CodeGenVisitor::CodeGen(BinaryExprAST *ast) -> llvm::Value* {
     // case '+':
     //     // 第三个参数Name是一个可选的参数 表示生成指令的名称
     //     // 如果生成了多条类型相同的ir指令 llvm会在名称后加上唯一的递增的数字区分指令
-    //     // FAdd、FSub为浮点数加减法 因为kalei只有double一种类型 所以用F开头的指令
+    //     // FAdd、FSub为浮点数加减法 因为hoshino只有double一种类型 所以用F开头的指令
     //     return builder->CreateFAdd(l, r, "addtmp");
     // case '-':
     //     return builder->CreateFSub(l, r, "subtmp");
@@ -87,7 +87,7 @@ auto CodeGenVisitor::CodeGen(BinaryExprAST *ast) -> llvm::Value* {
     // case '<':
     //     /* 
     //         FCmpULT(float point compare, result is unsigned, less than)
-    //         llvm的fcmp指令始终返回一位整数 但是因为kalei只有double一种类型
+    //         llvm的fcmp指令始终返回一位整数 但是因为hoshino只有double一种类型
     //         所以我们希望将返回的数转换为0.0或1.0
     //         因此第二行用UIToFP(unsigned int to float point)将其转为浮点数
     //         如果用SIToFP(signed int to float point)则会转为0.0或-1.0
