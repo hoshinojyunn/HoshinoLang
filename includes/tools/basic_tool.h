@@ -26,4 +26,11 @@ inline auto log_err_v(const char *str) -> llvm::Value* {
 #define LOG_ERROR_P(msg) log_err_p(msg)
 #define LOG_ERROR_V(msg) log_err_v(msg)
 
+
+#define LOG_INFO(...)               \
+    ::fprintf(stdout, __VA_ARGS__); \
+    fprintf(stdout, "\n");          \
+    ::fflush(stdout)
+
+
 #define IS_ASCII(c) ((c & ~0x7f) == 0)

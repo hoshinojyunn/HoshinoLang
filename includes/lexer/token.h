@@ -38,9 +38,7 @@ public:
     operator int(){
         return tok;
     }
-    // operator char(){
-    //     return (char)tok;
-    // }
+
     friend std::ostream& operator<< (std::ostream&out, Token&tok){
         return out << tok.GetTokNum();
     }
