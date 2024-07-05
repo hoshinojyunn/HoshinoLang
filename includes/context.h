@@ -3,12 +3,10 @@
 #include <string>
 #include <fstream>
 
-#define RELEASE
+#define DEBUG
 
 
-#ifdef RELEASE
 inline std::unique_ptr<std::ifstream> sourceInput;
-#endif
 
 extern void SettingContext(std::string);
 extern void MainLoop();

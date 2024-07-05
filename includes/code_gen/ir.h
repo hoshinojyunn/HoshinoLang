@@ -68,22 +68,22 @@ inline std::map<std::string, std::unique_ptr<hoshino::PrototypeAST>>functionProt
     IN:IR==>Pass1==>Pass2==>...==>OUT:optimized IR
 */
 // 管理FunctionPass FunctionPass作用于每个函数上 优化函数指令 
-inline std::unique_ptr<llvm::legacy::FunctionPassManager>theFPM;
-// 循环分析管理
-inline std::unique_ptr<llvm::LoopAnalysisManager>theLAM;
-// 函数分析管理
-inline std::unique_ptr<llvm::FunctionAnalysisManager>theFAM;
-/* 
-    CGSCC: Call Graph Strongly Connected Component
-    这是一个函数调用图的强连通分量的分析管理
-*/
-inline std::unique_ptr<llvm::CGSCCAnalysisManager>theCGAM;
-// module分析管理
-inline std::unique_ptr<llvm::ModuleAnalysisManager>theMAM;
-// 管理Callback的注册信息
-inline std::unique_ptr<llvm::PassInstrumentationCallbacks>thePIC;
-// 提供注册pass的接口
-inline std::unique_ptr<llvm::StandardInstrumentations>theSI;
+// inline std::unique_ptr<llvm::legacy::FunctionPassManager>theFPM;
+// // 循环分析管理
+// inline std::unique_ptr<llvm::LoopAnalysisManager>theLAM;
+// // 函数分析管理
+// inline std::unique_ptr<llvm::FunctionAnalysisManager>theFAM;
+// /* 
+//     CGSCC: Call Graph Strongly Connected Component
+//     这是一个函数调用图的强连通分量的分析管理
+// */
+// inline std::unique_ptr<llvm::CGSCCAnalysisManager>theCGAM;
+// // module分析管理
+// inline std::unique_ptr<llvm::ModuleAnalysisManager>theMAM;
+// // 管理Callback的注册信息
+// inline std::unique_ptr<llvm::PassInstrumentationCallbacks>thePIC;
+// // 提供注册pass的接口
+// inline std::unique_ptr<llvm::StandardInstrumentations>theSI;
 
 inline void InitModuleAndManager(){
     // context and module
@@ -94,53 +94,6 @@ inline void InitModuleAndManager(){
     // builder
     builder = std::make_unique<llvm::IRBuilder<>>(*theContext);
 
-    // pass and analysis manager
-    theFPM = std::make_unique<llvm::legacy::FunctionPassManager>(theModule.get());
-    // theLAM = std::make_unique<llvm::LoopAnalysisManager>();
-    // theFAM = std::make_unique<llvm::FunctionAnalysisManager>();
-    // theCGAM = std::make_unique<llvm::CGSCCAnalysisManager>();
-    // theMAM = std::make_unique<llvm::ModuleAnalysisManager>();
-    // thePIC = std::make_unique<llvm::PassInstrumentationCallbacks>();
-    // theSI = std::make_unique<llvm::StandardInstrumentations>(true);
-
-    // theSI->registerCallbacks(*thePIC, theFAM.get());
-    /*
-        添加Instruction Combine Pass 该Pass旨在简化、消除某些不必要的指令
-        该Pass不会修改控制流图 且它的结果对DCE Pass(dead code pass)有重要作用
-        如，原指令为: %Y = 1 + %X，%Z = 1 + %Y
-        则经过该Pass后两条指令变为一条指令: %Z = 2 + %X
-    */ 
-    theFPM->add(llvm::createInstructionCombiningPass());
-    /*
-        该Pass用于重新关联可交换的表达式的顺序，为了更好促进常量表达式的传播
-        如，4+(x+5) 经过该Pass后变为：x+(4+5)
-    */
-    theFPM->add(llvm::createReassociatePass());
-    /*
-        GVN: Global Value Numbering，为每一个计算得到的值分配一个唯一编号
-        该Pass用于消除多余的values、loads以及指令
-        如，一段程序中出现了多次操作数相同的乘法，那么编译器可以将这些乘法合并为一个
-        一般GVN通过直接比较两个表达式的值是否相同来判断是否合并为一个表达式
-    */
-    theFPM->add(llvm::createGVNPass());
-    /*
-        CFG: Control Flow Graph 控制流图
-        该Pass用于简化以及规范化函数的控制流图
-    */
-    theFPM->add(llvm::createCFGSimplificationPass());
-    // 优化alloca变量的调用 将不必要的alloca load与store改为寄存器SSA form
-    // theFPM->add(llvm::createPromoteMemoryToRegisterPass());
-
-
-
-    theFPM->doInitialization();
-    // llvm::PassBuilder pb{};
-    // pb.registerModuleAnalyses(*theMAM);
-    // pb.registerFunctionAnalyses(*theFAM);
-    // pb.crossRegisterProxies(*theLAM, 
-    //     *theFAM, 
-    //     *theCGAM,  
-    //     *theMAM);
 }
 
 

@@ -1,8 +1,5 @@
 #include "lib.h"
 #include <cstdio>
-#include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
-#include <llvm/IR/Module.h>
-
 
 extern "C" DLLEXPORT double putchard(double x){
     fputc((char)x, stderr);

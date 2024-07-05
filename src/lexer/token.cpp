@@ -35,12 +35,10 @@ static int GetTokPrecedence();
 
 static int lastChar = ' ';
 
+static int globalFuncCounting = 0;
+
 static int GetChar(){
-#ifdef RELEASE
-        return sourceInput->get();
-#else
-        return getchar();
-#endif
+    return sourceInput->get();
 }
 static Token GetTok(){
     while(std::isspace(lastChar)){
@@ -52,7 +50,7 @@ static Token GetTok(){
     // token以字母开头
     if(std::isalpha(lastChar)){
         identifierStr = lastChar;
-        while(std::isalnum(lastChar = GetChar())){
+        while(std::isalnum(lastChar = GetChar()) || lastChar == '_'){
             identifierStr += lastChar;
         } // token解析完成 一直解析到当前字符不是数字或字母为止
 
@@ -532,11 +530,12 @@ std::unique_ptr<PrototypeAST> ParseExtern(){
 /*
     将顶层表达式转化为匿名函数
 */
-std::unique_ptr<FunctionAST> ParseTopLevelExpr(){
+std::unique_ptr<FunctionAST> ParseTopLevelExpr(std::string&anonFuncName){
     if(auto expr = ParseExpression(); expr!=nullptr){
+        anonFuncName = anonymous_expr_name + std::string("_") + std::to_string(globalFuncCounting++);
         // make an empty proto
         auto proto = std::make_unique<PrototypeAST>(
-            anonymous_expr_name, std::vector<std::string>{});
+            anonFuncName, std::vector<std::string>{});
         return std::make_unique<FunctionAST>(std::move(proto), std::move(expr));
     }
     return nullptr;

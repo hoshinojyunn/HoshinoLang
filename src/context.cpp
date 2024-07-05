@@ -29,9 +29,6 @@ static void HandleExtern(){
 static void HandleDefinition(){
     if(auto fnAST = ParseDefinition()){
         if(auto *fnIR = codeGenerator->CodeGen(fnAST.get())){
-            fprintf(stderr, "Read function definition:\n");
-            fnIR->print(llvm::errs());
-            fprintf(stderr, "\n");
             // 一个函数定义放在一个module里
             exitOnErr(theJIT->addModule(
                 llvm::orc::ThreadSafeModule(std::move(theModule), std::move(theContext))
@@ -46,12 +43,9 @@ static void HandleDefinition(){
 }
 
 static void HandleTopLevelExpr(){
-    if(auto fnAST = ParseTopLevelExpr()){
+    std::string anonFuncName;
+    if(auto fnAST = ParseTopLevelExpr(anonFuncName)){
         if(auto fnIR = codeGenerator->CodeGen(fnAST.get())){
-            fprintf(stderr, "Read top-level exprssion:\n");
-            fnIR->print(llvm::errs());
-            fprintf(stderr, "\n");
-            
             auto res_tracker = theJIT->getMainJITDylib().createResourceTracker();
             // 将当前的module给顶级表达式的匿名函数使用
             auto thread_safe_mod = 
@@ -61,7 +55,7 @@ static void HandleTopLevelExpr(){
             // 前面将module给了匿名函数用 外层新建另外的module
             InitModuleAndManager();
             // jit中找匿名函数
-            auto exprSymbol = exitOnErr(theJIT->lookup(anonymous_expr_name));
+            auto exprSymbol = exitOnErr(theJIT->lookup(anonFuncName));
             assert(exprSymbol && "function not found");
             
             auto funcAddr = exprSymbol.getAddress();
@@ -101,9 +95,7 @@ void MainLoop(){
 
 
 void SettingContext(std::string sourceFile){
-#ifdef RELEASE
     sourceInput = std::make_unique<std::ifstream>(sourceFile);
-#endif
     InitBinOpPrecedence();
     InitValidBinOpSet();
     InitJIT();
