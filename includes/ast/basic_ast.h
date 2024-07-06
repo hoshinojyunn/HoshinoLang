@@ -13,6 +13,7 @@
 
 namespace hoshino {
 class NumberExprAST;
+class StrExprAST;
 class VariableExprAST;
 class VarExprAST;
 class BinaryExprAST;
@@ -28,6 +29,7 @@ class FunctionAST;
 class Visitor{
 public:
     virtual llvm::Value* CodeGen(NumberExprAST*) = 0;
+    virtual llvm::Value* CodeGen(StrExprAST*) = 0;
     virtual llvm::Value* CodeGen(VariableExprAST*) = 0;
     virtual llvm::Value* CodeGen(VarExprAST*) = 0;
     virtual llvm::Value* CodeGen(BinaryExprAST*) = 0;
@@ -45,6 +47,7 @@ public:
 class CodeGenVisitor : public Visitor {
 public:
     auto CodeGen(NumberExprAST*ast) -> llvm::Value* override;
+    auto CodeGen(StrExprAST*ast) -> llvm::Value* override;
     auto CodeGen(VariableExprAST*ast) -> llvm::Value* override;
     auto CodeGen(VarExprAST*) -> llvm::Value* override;
     auto CodeGen(BinaryExprAST *ast) -> llvm::Value* override;
@@ -69,6 +72,16 @@ class NumberExprAST : public ExprAST {
     double val_;
 public:
     NumberExprAST(double val) : val_(val) {}
+    llvm::Value* ToLLvmValue(Visitor*v) override {
+        return v->CodeGen(this);
+    }
+};
+
+class StrExprAST : public ExprAST{
+    friend class CodeGenVisitor;
+    std::string val_;
+public:
+    StrExprAST(const std::string&val) : val_(val){}
     llvm::Value* ToLLvmValue(Visitor*v) override {
         return v->CodeGen(this);
     }

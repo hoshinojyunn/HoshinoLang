@@ -25,10 +25,10 @@ inline auto getFunction(std::string_view name) -> llvm::Function* {
     在theFunc的开头处建立一个名为varName的alloca变量
 */
 inline auto CreateEntryBlockAlloca(llvm::Function *theFunc, 
-    const std::string&varName) -> llvm::AllocaInst* {
+    const std::string&varName, llvm::Type*type) -> llvm::AllocaInst* {
     // 在一个function块的开头创建alloca变量
     llvm::IRBuilder<>tempBuilder{&theFunc->getEntryBlock(), 
         theFunc->getEntryBlock().begin()};
-    return tempBuilder.CreateAlloca(llvm::Type::getDoubleTy(*theContext), 0, 
+    return tempBuilder.CreateAlloca(type, 0, 
         varName.c_str());
 }

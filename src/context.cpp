@@ -46,6 +46,11 @@ static void HandleTopLevelExpr(){
     std::string anonFuncName;
     if(auto fnAST = ParseTopLevelExpr(anonFuncName)){
         if(auto fnIR = codeGenerator->CodeGen(fnAST.get())){
+#ifdef DEBUG
+            fprintf(stderr, "Read Function not optimized:\n");
+            fnIR->print(llvm::errs());
+            fprintf(stderr, "\n");
+#endif
             auto res_tracker = theJIT->getMainJITDylib().createResourceTracker();
             // 将当前的module给顶级表达式的匿名函数使用
             auto thread_safe_mod = 

@@ -21,6 +21,7 @@ enum TokenNum{
     TOK_UNARY = -11,
     TOK_VAR = -12,
     TOK_EXPR_END = -13,
+    TOK_STR = -14,
 };
 
 class Token{

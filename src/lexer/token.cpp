@@ -19,6 +19,7 @@ using namespace hoshino;
 static Token GetTok();
 static std::unique_ptr<ExprAST> ParseExpression();
 static std::unique_ptr<ExprAST>ParseNumberExpr();
+static std::unique_ptr<ExprAST>ParseStrExpr();
 static std::unique_ptr<ExprAST>ParseVarExpr();
 static std::unique_ptr<ExprAST> ParseParenExpr();
 static std::unique_ptr<ExprAST> ParsePrimary();
@@ -84,6 +85,15 @@ static Token GetTok(){
         identifierStr.data(), 
         identifierStr.data()+identifierStr.size(), numVal);
         return Token{TokenNum::TOK_NUMBER};
+    }
+    if(lastChar == '"'){
+        lastChar = GetChar(); // eat "
+        identifierStr = lastChar;
+        while ((lastChar = GetChar()) != '"') {
+            identifierStr += lastChar;
+        }
+        lastChar = GetChar(); // eat "
+        return Token{TokenNum::TOK_STR};
     }
     // 注释
     if(lastChar == '#'){
@@ -179,6 +189,12 @@ static std::unique_ptr<ExprAST>ParseNumberExpr(){
     return std::move(result);
 }
 
+static std::unique_ptr<ExprAST>ParseStrExpr(){
+    auto result = std::make_unique<StrExprAST>(identifierStr);
+    GetNextToken();
+    return std::move(result);
+}
+
 // 括号
 static std::unique_ptr<ExprAST> ParseParenExpr(){
     GetNextToken(); // eat (
@@ -227,6 +243,8 @@ static std::unique_ptr<ExprAST> ParsePrimary(){
             return ParseIdentifierExpr();
         case TOK_NUMBER:
             return ParseNumberExpr();
+        case TOK_STR:
+            return ParseStrExpr();
         case TOK_IF:
             return ParseIfExpr();
         case TOK_FOR:

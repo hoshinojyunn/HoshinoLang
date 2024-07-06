@@ -3,8 +3,11 @@
 #include "lexer/token.h"
 #include "tools/basic_tool.h"
 #include "tools/ir_tool.h"
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
+#include <iterator>
 #include <llvm/ADT/APFloat.h>
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/Constant.h>
@@ -24,6 +27,18 @@ using namespace hoshino;
 auto CodeGenVisitor::CodeGen(NumberExprAST *ast) -> llvm::Value* {
     return llvm::ConstantFP::get(*theContext, 
             llvm::APFloat(ast->val_));
+}
+
+auto CodeGenVisitor::CodeGen(StrExprAST *ast) -> llvm::Value* {
+    std::vector<llvm::Constant*>str;
+    std::transform(ast->val_.data(), ast->val_.data()+ast->val_.size(), std::back_inserter(str), 
+    [](char c){
+        return llvm::ConstantInt::get(llvm::Type::getInt8Ty(*theContext), 
+                                      static_cast<int8_t>(c));
+    });
+    return llvm::ConstantArray::get(llvm::ArrayType::get(
+        llvm::Type::getInt8Ty(*theContext), ast->val_.size()
+    ), str);
 }
 
 auto CodeGenVisitor::CodeGen(VariableExprAST *ast) -> llvm::Value * {
@@ -132,7 +147,7 @@ auto CodeGenVisitor::CodeGen(VarExprAST *ast) -> llvm::Value* {
         // 如果没有初始化 默认为0.0
         initVal = llvm::ConstantFP::get(*theContext, llvm::APFloat(0.0));
     }
-    llvm::AllocaInst *alloca = CreateEntryBlockAlloca(theFunc, varName);
+    llvm::AllocaInst *alloca = CreateEntryBlockAlloca(theFunc, varName, initVal->getType());
     builder->CreateStore(initVal, alloca);
     namedValues[varName] = alloca;
     return alloca;
@@ -212,7 +227,8 @@ ifcont-out:                                       ; preds = %else-in, %ifcont-in
 4. 之后的elseBB的更新设置同理
 */
 auto CodeGenVisitor::CodeGen(IfExprAST *ast) -> llvm::Value* {
-    auto ifRet = CreateEntryBlockAlloca(builder->GetInsertBlock()->getParent(), "ifRet");
+    auto ifRet = CreateEntryBlockAlloca(builder->GetInsertBlock()->getParent(), 
+                "ifRet", llvm::Type::getDoubleTy(*theContext));
     llvm::Value *condition_val = ast->condition_->ToLLvmValue(this);
     if(!condition_val)
         return nullptr;
@@ -289,9 +305,9 @@ auto CodeGenVisitor::CodeGen(IfExprAST *ast) -> llvm::Value* {
 
 auto CodeGenVisitor::CodeGen(ForExprAST *ast) -> llvm::Value* {
     llvm::Function*theFunction = builder->GetInsertBlock()->getParent();
-    // 创建alloca局部变量
-    llvm::AllocaInst *alloca = CreateEntryBlockAlloca(theFunction, ast->varName_);
     llvm::Value*startVal = ast->start_->ToLLvmValue(this);
+    // 创建alloca局部变量
+    llvm::AllocaInst *alloca = CreateEntryBlockAlloca(theFunction, ast->varName_, startVal->getType());
     if(!startVal)
         return nullptr;
     // 将startVal保存到alloca变量中
@@ -396,6 +412,7 @@ auto CodeGenVisitor::CodeGen(PrototypeAST *ast) -> llvm::Function* {
         llvm::Type::getDoubleTy(*theContext)};
     // function类型 包括返回值、所有参数的类型(数组)、参数是否可变
     llvm::FunctionType *ft = llvm::FunctionType::get(
+        // TODO: funtion参数类型暂时定为double，后续将支持多类型
         llvm::Type::getDoubleTy(*theContext),
         doubles,
         false
@@ -453,11 +470,13 @@ auto CodeGenVisitor::CodeGen(FunctionAST *ast) -> llvm::Function* {
     namedValues.clear();
     // 为函数参数创建alloca局部变量到栈上
     for(auto&arg : theFunc->args()) {
-        auto alloca = CreateEntryBlockAlloca(theFunc, arg.getName().str());
+        auto alloca = CreateEntryBlockAlloca(theFunc, arg.getName().str(), arg.getType());
         builder->CreateStore(&arg, alloca);
         namedValues[arg.getName().str()] = alloca;
     }
-    auto res = CreateEntryBlockAlloca(theFunc, "$ret");
+    // TODO: 暂时规定为返回double类型 后续将支持return返回
+    auto res = CreateEntryBlockAlloca(theFunc,
+             "$ret", llvm::Type::getDoubleTy(*theContext));
     namedValues[res->getName().str()] = res;
     // 给函数体创建指令 并获得返回的Value 如果不出错 则会在entry block中创建指令
     if(llvm::Value *retVal = ast->body_->ToLLvmValue(this)){
@@ -481,4 +500,5 @@ auto CodeGenVisitor::CodeGen(FunctionAST *ast) -> llvm::Function* {
     if(proto.isBinaryOp())
         binOpPrecedence.erase(proto.GetOperator());
     return nullptr;
+    
 }
