@@ -45,7 +45,7 @@ def [unary|binary]@[operator] [precedence] (args) {
     ......
 }
 ```
-下面演示一些基本运算符的定义
+下面演示一些基本运算符的定义(这些运算符会在后续if与for的教程中使用到)
 ```txt
 # 定义单目运算符!
 def unary@!(v) {
@@ -68,14 +68,40 @@ def binary@|| 5 (LHS RHS){
     0;
   }
 }
+# 定义双目运算符&&
+def binary@&& 5 (LHS RHS){
+  var flag = 1;
+  if !LHS {
+    flag = 0;
+  }
+  if !RHS {
+    flag = 0;
+  }
+  flag;
+}
 # 定义双目运算符>
 def binary@> 10 (LHS RHS) {
   RHS < LHS;
 }
 # 定义双目运算符==
-def binary@== 9 (LHS RHS) {
+def binary@== 10 (LHS RHS) {
   !(LHS < RHS || LHS > RHS);
 }
+# 定义双目运算符+=, 与=优先级相同
+def binary@+= 2 (LHS RHS) {
+  LHS = LHS + RHS;
+}
+# 定义双目运算符, 最低优先级
+def binary@, 1 (LHS RHS) {
+  LHS;
+  RHS;
+}
+# 定义双目运算符<=
+def binary@<= 10 (LHS RHS) {
+  (LHS < RHS) || (LHS == RHS); 
+}
+
+
 # 判断两个数是否相等
 def isSame(x y) {
     x == y;
@@ -87,6 +113,7 @@ def isSame(x y) {
 ```
 ## 3.3 if语句
 ```txt
+#注册单双目运算符
 # if语句的条件接受一个表达式，为0时条件为假，非0时条件为真
 {
   var a = 10;
@@ -105,6 +132,8 @@ extern putchard(char);
 extern printNum(char);
 extern tab();
 extern endl();
+# 注册需要的单目与双目运算符
+...
 # 打印九九乘法表
 for i=1;i<10;i+=1{
     for j=1;j<i;j+=1 {

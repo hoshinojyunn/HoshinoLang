@@ -156,7 +156,7 @@ static std::string ReadNTok(size_t n){
 }
 
 static std::string VerifyBinaryOp(){
-    
+    // 双目运算符长度最大为3 (<<= 左移赋值运算符)
     std::string op2 = ReadNTok(3);
     if(auto it = validBinOp.find(op2); it!=validBinOp.end()){
         return op2;
